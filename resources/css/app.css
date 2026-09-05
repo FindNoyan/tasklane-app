@@ -1,0 +1,12 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  background: #FAFAF7;
+  color: #23261F;
+}
+
+.priority-bar--low { border-left-color: #A9AD9F; }
+.priority-bar--medium { border-left-color: #2F8F82; }
+.priority-bar--high { border-left-color: #C98A3B; }
