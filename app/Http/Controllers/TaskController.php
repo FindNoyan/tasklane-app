@@ -48,6 +48,32 @@ class TaskController extends Controller
     }
 
     /**
+     * Show the form for editing a task.
+     */
+    public function edit(Task $task): View
+    {
+        return view('tasks.edit', ['task' => $task]);
+    }
+
+    /**
+     * Update a task's editable fields.
+     */
+    public function update(Request $request, Task $task): RedirectResponse
+    {
+        $validated = $request->validate([
+            'title' => ['required', 'string', 'max:255'],
+            'description' => ['nullable', 'string'],
+            'status' => ['required', 'in:todo,in_progress,done'],
+            'priority' => ['required', 'in:low,medium,high'],
+            'due_date' => ['nullable', 'date'],
+        ]);
+
+        $task->update($validated);
+
+        return redirect()->route('tasks.index')->with('status', 'Task updated.');
+    }
+
+    /**
      * Move a task to a new status column.
      */
     public function updateStatus(Request $request, Task $task): RedirectResponse
