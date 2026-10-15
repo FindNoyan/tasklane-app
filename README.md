@@ -26,6 +26,7 @@ the correct framework files for whatever Laravel version you install.
    - `routes/web.php`
    - `resources/views/layouts/app.blade.php`
    - `resources/views/tasks/index.blade.php`
+   - `resources/views/tasks/edit.blade.php`
    - `resources/css/app.css`
    - `tailwind.config.js`, `postcss.config.js` (add these; Laravel 10
      doesn't include Tailwind by default)
