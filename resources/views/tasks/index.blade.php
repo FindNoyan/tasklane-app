@@ -5,36 +5,48 @@
 
         <section class="mb-10 rounded-lg border border-line bg-surface p-5">
             <h2 class="font-display text-lg font-semibold text-ink">Add a task</h2>
-            <form method="POST" action="{{ route('tasks.store') }}" class="mt-4 grid gap-3 sm:grid-cols-[2fr_1fr_1fr_auto]">
+            <form method="POST" action="{{ route('tasks.store') }}" class="mt-4">
                 @csrf
                 <input type="hidden" name="board_id" value="{{ $board->id }}">
-                <input
-                    type="text"
-                    name="title"
-                    placeholder="Task title"
-                    required
-                    class="rounded-md border border-line px-3 py-2 text-sm focus:border-teal focus:outline-none"
-                >
-                <select name="priority" class="rounded-md border border-line px-3 py-2 text-sm focus:border-teal focus:outline-none">
-                    <option value="low">Low</option>
-                    <option value="medium" selected>Medium</option>
-                    <option value="high">High</option>
-                </select>
-                <input
-                    type="date"
-                    name="due_date"
-                    class="rounded-md border border-line px-3 py-2 text-sm focus:border-teal focus:outline-none"
-                >
-                <button
-                    type="submit"
-                    class="rounded-md bg-ink px-4 py-2 text-sm font-medium text-paper transition-opacity hover:opacity-90"
-                >
-                    Add
-                </button>
+                <div class="grid gap-3 sm:grid-cols-[2fr_1fr_1fr_auto]">
+                    <input
+                        type="text"
+                        name="title"
+                        placeholder="Task title"
+                        value="{{ old('title') }}"
+                        required
+                        class="rounded-md border border-line px-3 py-2 text-sm focus:border-teal focus:outline-none"
+                    >
+                    <select name="priority" class="rounded-md border border-line px-3 py-2 text-sm focus:border-teal focus:outline-none">
+                        <option value="low" @selected(old('priority', 'medium') === 'low')>Low</option>
+                        <option value="medium" @selected(old('priority', 'medium') === 'medium')>Medium</option>
+                        <option value="high" @selected(old('priority', 'medium') === 'high')>High</option>
+                    </select>
+                    <input
+                        type="date"
+                        name="due_date"
+                        value="{{ old('due_date') }}"
+                        class="rounded-md border border-line px-3 py-2 text-sm focus:border-teal focus:outline-none"
+                    >
+                    <button
+                        type="submit"
+                        class="rounded-md bg-ink px-4 py-2 text-sm font-medium text-paper transition-opacity hover:opacity-90"
+                    >
+                        Add
+                    </button>
+                </div>
+                <textarea
+                    name="description"
+                    placeholder="Description (optional)"
+                    rows="2"
+                    class="mt-3 w-full rounded-md border border-line px-3 py-2 text-sm focus:border-teal focus:outline-none"
+                >{{ old('description') }}</textarea>
             </form>
-            @error('title')
-                <p class="mt-2 text-sm text-ochre">{{ $message }}</p>
-            @enderror
+            @foreach (['board_id', 'title', 'description', 'priority', 'due_date'] as $field)
+                @error($field)
+                    <p class="mt-2 text-sm text-ochre">{{ $message }}</p>
+                @enderror
+            @endforeach
         </section>
 
         <div class="grid gap-6 sm:grid-cols-3">
@@ -76,6 +88,10 @@
                                         </form>
                                     </div>
                                 </div>
+
+                                @if ($task->description)
+                                    <p class="mt-1 text-sm text-muted">{{ $task->description }}</p>
+                                @endif
 
                                 @if ($task->due_date)
                                     <p class="mt-1 text-xs {{ $task->isOverdue() ? 'text-ochre' : 'text-muted' }}">
