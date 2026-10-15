@@ -56,17 +56,25 @@
                             <article class="priority-bar--{{ $task->priority }} rounded-md border border-line border-l-4 bg-surface p-4">
                                 <div class="flex items-start justify-between gap-2">
                                     <h4 class="text-sm font-medium text-ink">{{ $task->title }}</h4>
-                                    <form method="POST" action="{{ route('tasks.destroy', $task) }}">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button
-                                            type="submit"
-                                            class="text-xs text-muted transition-colors hover:text-ochre"
-                                            aria-label="Remove task"
+                                    <div class="flex shrink-0 items-center gap-2">
+                                        <a
+                                            href="{{ route('tasks.edit', $task) }}"
+                                            class="text-xs text-teal hover:underline"
                                         >
-                                            Remove
-                                        </button>
-                                    </form>
+                                            Edit
+                                        </a>
+                                        <form method="POST" action="{{ route('tasks.destroy', $task) }}">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button
+                                                type="submit"
+                                                class="text-xs text-muted transition-colors hover:text-ochre"
+                                                aria-label="Remove task"
+                                            >
+                                                Remove
+                                            </button>
+                                        </form>
+                                    </div>
                                 </div>
 
                                 @if ($task->due_date)
