@@ -30,8 +30,17 @@ class Task extends Model
 
     public function isOverdue(): bool
     {
-        return $this->due_date
-            && $this->due_date->isPast()
+        // Compare calendar dates, not datetimes: due_date is cast to
+        // `date` (midnight), so isPast() flagged a task due today as
+        // overdue. A task is overdue only once its due date is behind us.
+        return $this->due_date !== null
+            && $this->due_date->isBefore(today())
             && $this->status !== 'done';
+    }
+
+    public function isDueToday(): bool
+    {
+        return $this->due_date !== null
+            && $this->due_date->isToday();
     }
 }

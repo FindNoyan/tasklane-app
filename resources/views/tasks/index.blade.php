@@ -97,6 +97,7 @@
                                     <p class="mt-1 text-xs {{ $task->isOverdue() ? 'text-ochre' : 'text-muted' }}">
                                         Due {{ $task->due_date->format('M j') }}
                                         @if ($task->isOverdue()) · overdue @endif
+                                        @if ($task->isDueToday()) · due today @endif
                                     </p>
                                 @endif
 
