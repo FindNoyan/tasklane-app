@@ -15,12 +15,18 @@ class TaskController extends Controller
      */
     public function index(): View
     {
-        $board = Board::with('tasks')->firstOrCreate(['name' => 'My Board']);
+        $board = Board::firstOrCreate(['name' => 'My Board']);
+
+        // Sort in the query, not in the view: Task::ordered() puts the
+        // earliest due date first (no due date last), then high
+        // priority first. Collection::where() below preserves that
+        // order, so each column reads in the same order.
+        $tasks = $board->tasks()->ordered()->get();
 
         $columns = [
-            'todo' => $board->tasks->where('status', 'todo'),
-            'in_progress' => $board->tasks->where('status', 'in_progress'),
-            'done' => $board->tasks->where('status', 'done'),
+            'todo' => $tasks->where('status', 'todo'),
+            'in_progress' => $tasks->where('status', 'in_progress'),
+            'done' => $tasks->where('status', 'done'),
         ];
 
         return view('tasks.index', [
