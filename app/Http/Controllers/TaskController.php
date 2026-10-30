@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\TaskRequest;
 use App\Models\Board;
 use App\Models\Task;
 use Illuminate\Http\RedirectResponse;
@@ -38,17 +39,9 @@ class TaskController extends Controller
     /**
      * Store a newly created task on the board.
      */
-    public function store(Request $request): RedirectResponse
+    public function store(TaskRequest $request): RedirectResponse
     {
-        $validated = $request->validate([
-            'board_id' => ['required', 'exists:boards,id'],
-            'title' => ['required', 'string', 'max:255'],
-            'description' => ['nullable', 'string'],
-            'priority' => ['required', 'in:low,medium,high'],
-            'due_date' => ['nullable', 'date'],
-        ]);
-
-        Task::create($validated + ['status' => 'todo']);
+        Task::create($request->validated() + ['status' => 'todo']);
 
         return redirect()->route('tasks.index')->with('status', 'Task added.');
     }
@@ -64,17 +57,9 @@ class TaskController extends Controller
     /**
      * Update a task's editable fields.
      */
-    public function update(Request $request, Task $task): RedirectResponse
+    public function update(TaskRequest $request, Task $task): RedirectResponse
     {
-        $validated = $request->validate([
-            'title' => ['required', 'string', 'max:255'],
-            'description' => ['nullable', 'string'],
-            'status' => ['required', 'in:todo,in_progress,done'],
-            'priority' => ['required', 'in:low,medium,high'],
-            'due_date' => ['nullable', 'date'],
-        ]);
-
-        $task->update($validated);
+        $task->update($request->validated());
 
         return redirect()->route('tasks.index')->with('status', 'Task updated.');
     }
