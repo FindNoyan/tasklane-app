@@ -75,7 +75,7 @@
                                         >
                                             Edit
                                         </a>
-                                        <form method="POST" action="{{ route('tasks.destroy', $task) }}">
+                                        <form method="POST" action="{{ route('tasks.destroy', $task) }}" data-confirm-delete>
                                             @csrf
                                             @method('DELETE')
                                             <button
