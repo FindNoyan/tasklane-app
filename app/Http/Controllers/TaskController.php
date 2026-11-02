@@ -14,15 +14,29 @@ class TaskController extends Controller
     /**
      * Show the board with tasks grouped by status.
      */
-    public function index(): View
+    public function index(Request $request): View
     {
         $board = Board::firstOrCreate(['name' => 'My Board']);
 
-        // Sort in the query, not in the view: Task::ordered() puts the
-        // earliest due date first (no due date last), then high
-        // priority first. Collection::where() below preserves that
-        // order, so each column reads in the same order.
-        $tasks = $board->tasks()->ordered()->get();
+        // Search + filter come from the board's GET form and are
+        // whitelisted here, so an unknown value never reaches the
+        // query as an error: Task::filtered() ignores it.
+        $filters = [
+            'search' => is_string($request->query('search')) ? trim($request->query('search')) : '',
+            'priority' => is_string($request->query('priority')) ? $request->query('priority') : null,
+            'overdue' => $request->query('overdue') === '1',
+        ];
+
+        $filtersActive = $filters['search'] !== ''
+            || in_array($filters['priority'], ['low', 'medium', 'high'], true)
+            || $filters['overdue'];
+
+        // Filter in the query, then sort in the query, not in the
+        // view: Task::filtered() narrows the rows and Task::ordered()
+        // puts the earliest due date first (no due date last), then
+        // high priority first. Collection::where() below preserves
+        // that order, so each column reads in the same order.
+        $tasks = $board->tasks()->filtered($filters)->ordered()->get();
 
         $columns = [
             'todo' => $tasks->where('status', 'todo'),
@@ -33,6 +47,8 @@ class TaskController extends Controller
         return view('tasks.index', [
             'board' => $board,
             'columns' => $columns,
+            'filters' => $filters,
+            'filtersActive' => $filtersActive,
         ]);
     }
 
