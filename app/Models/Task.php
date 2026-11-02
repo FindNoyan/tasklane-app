@@ -47,6 +47,33 @@ class Task extends Model
             ->orderBy('id');
     }
 
+    /**
+     * Narrow tasks by the board's search + filter form. Unknown
+     * values are ignored, never an error: an unknown priority simply
+     * means "no priority filter", and an empty search means "no
+     * search". The overdue rule matches isOverdue(): due before
+     * today and not done, so a task due today is never overdue.
+     */
+    public function scopeFiltered(Builder $query, array $filters): void
+    {
+        $search = trim((string) ($filters['search'] ?? ''));
+
+        if ($search !== '') {
+            $query->where('title', 'like', '%'.$search.'%');
+        }
+
+        $priority = $filters['priority'] ?? null;
+
+        if (in_array($priority, ['low', 'medium', 'high'], true)) {
+            $query->where('priority', $priority);
+        }
+
+        if (! empty($filters['overdue'])) {
+            $query->where('due_date', '<', today()->toDateString())
+                ->where('status', '!=', 'done');
+        }
+    }
+
     public function isOverdue(): bool
     {
         // Compare calendar dates, not datetimes: due_date is cast to
