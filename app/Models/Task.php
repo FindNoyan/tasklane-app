@@ -59,7 +59,11 @@ class Task extends Model
         $search = trim((string) ($filters['search'] ?? ''));
 
         if ($search !== '') {
-            $query->where('title', 'like', '%'.$search.'%');
+            // LOWER() on both sides, not a bare LIKE: LIKE is
+            // case-insensitive on MySQL's default collation but
+            // case-sensitive on PostgreSQL, and this board must
+            // behave the same on either database.
+            $query->whereRaw('LOWER(title) LIKE ?', ['%'.mb_strtolower($search).'%']);
         }
 
         $priority = $filters['priority'] ?? null;
