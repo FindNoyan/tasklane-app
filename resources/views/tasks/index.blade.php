@@ -49,6 +49,53 @@
             @endforeach
         </section>
 
+        <section class="mb-10 rounded-lg border border-line bg-surface p-5">
+            <h2 class="font-display text-lg font-semibold text-ink">Find a task</h2>
+            <form method="GET" action="{{ route('tasks.index') }}" class="mt-4 flex flex-wrap items-end gap-3">
+                <label class="flex flex-col gap-1 text-xs text-muted">
+                    Search by title
+                    <input
+                        type="text"
+                        name="search"
+                        value="{{ $filters['search'] }}"
+                        placeholder="Search titles"
+                        class="rounded-md border border-line px-3 py-2 text-sm text-ink focus:border-teal focus:outline-none"
+                    >
+                </label>
+                <label class="flex flex-col gap-1 text-xs text-muted">
+                    Priority
+                    <select name="priority" class="rounded-md border border-line px-3 py-2 text-sm text-ink focus:border-teal focus:outline-none">
+                        <option value="" @selected($filters['priority'] === null || $filters['priority'] === '')>All priorities</option>
+                        <option value="low" @selected($filters['priority'] === 'low')>Low</option>
+                        <option value="medium" @selected($filters['priority'] === 'medium')>Medium</option>
+                        <option value="high" @selected($filters['priority'] === 'high')>High</option>
+                    </select>
+                </label>
+                <label class="flex items-center gap-2 pb-2 text-sm text-ink">
+                    <input type="checkbox" name="overdue" value="1" @checked($filters['overdue'])>
+                    Overdue only
+                </label>
+                <button
+                    type="submit"
+                    class="rounded-md bg-ink px-4 py-2 text-sm font-medium text-paper transition-opacity hover:opacity-90"
+                >
+                    Search
+                </button>
+                @if ($filtersActive)
+                    <a href="{{ route('tasks.index') }}" class="pb-2 text-sm text-teal hover:underline">
+                        Clear filters
+                    </a>
+                @endif
+            </form>
+        </section>
+
+        @if ($filtersActive && $columns['todo']->isEmpty() && $columns['in_progress']->isEmpty() && $columns['done']->isEmpty())
+            <p class="mb-6 text-sm text-muted">
+                No tasks match your filters.
+                <a href="{{ route('tasks.index') }}" class="text-teal hover:underline">Clear filters</a>
+            </p>
+        @endif
+
         <div class="grid gap-6 sm:grid-cols-3">
             @foreach ([
                 'todo' => 'To do',
