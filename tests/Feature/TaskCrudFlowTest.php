@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Board;
+use App\Models\Task;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -34,5 +35,48 @@ class TaskCrudFlowTest extends TestCase
         $this->get('/')->assertOk()
             ->assertSee('Board visible task')
             ->assertSee('Shown on the board');
+    }
+
+    public function test_edit_page_is_prefilled_and_update_shows_on_board(): void
+    {
+        $board = Board::firstOrCreate(['name' => 'My Board']);
+
+        $task = Task::create([
+            'board_id' => $board->id,
+            'title' => 'Task to edit',
+            'description' => 'Original description',
+            'status' => 'todo',
+            'priority' => 'medium',
+        ]);
+
+        // The edit form must start from the saved values, not blank.
+        $this->get("/tasks/{$task->id}/edit")->assertOk()
+            ->assertSee('Edit task')
+            ->assertSee('Task to edit')
+            ->assertSee('Original description')
+            ->assertSee('Save changes');
+
+        $response = $this->put("/tasks/{$task->id}", [
+            'title' => 'Edited task',
+            'description' => 'Updated description',
+            'status' => 'in_progress',
+            'priority' => 'high',
+        ]);
+
+        $response->assertRedirect('/');
+        $response->assertSessionHas('status', 'Task updated.');
+
+        $this->assertDatabaseHas('tasks', [
+            'id' => $task->id,
+            'title' => 'Edited task',
+            'description' => 'Updated description',
+            'status' => 'in_progress',
+            'priority' => 'high',
+        ]);
+
+        $this->get('/')->assertOk()
+            ->assertSee('Edited task')
+            ->assertSee('Updated description')
+            ->assertDontSee('Original description');
     }
 }
