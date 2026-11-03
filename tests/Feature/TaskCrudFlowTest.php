@@ -79,4 +79,48 @@ class TaskCrudFlowTest extends TestCase
             ->assertSee('Updated description')
             ->assertDontSee('Original description');
     }
+
+    public function test_column_move_changes_only_status_and_rejects_invalid_status(): void
+    {
+        $board = Board::firstOrCreate(['name' => 'My Board']);
+
+        $task = Task::create([
+            'board_id' => $board->id,
+            'title' => 'Task to move',
+            'description' => 'Stays put on a move',
+            'status' => 'todo',
+            'priority' => 'medium',
+        ]);
+
+        // A column move is the board's main interaction, and it had
+        // no test at all: todo -> in progress -> done.
+        $this->patch("/tasks/{$task->id}", ['status' => 'in_progress'])
+            ->assertRedirect('/')
+            ->assertSessionHas('status', 'Task updated.');
+
+        $this->assertDatabaseHas('tasks', [
+            'id' => $task->id,
+            'title' => 'Task to move',
+            'description' => 'Stays put on a move',
+            'status' => 'in_progress',
+        ]);
+
+        $this->patch("/tasks/{$task->id}", ['status' => 'done'])
+            ->assertRedirect('/');
+
+        $this->assertDatabaseHas('tasks', [
+            'id' => $task->id,
+            'status' => 'done',
+        ]);
+
+        // An invalid column must not move the task anywhere.
+        $this->patch("/tasks/{$task->id}", ['status' => 'archived'])
+            ->assertSessionHasErrors('status');
+
+        $this->assertDatabaseHas('tasks', [
+            'id' => $task->id,
+            'title' => 'Task to move',
+            'status' => 'done',
+        ]);
+    }
 }
