@@ -16,13 +16,15 @@ class TaskController extends Controller
      */
     public function index(Request $request): View
     {
-        // ?board=<id> switches boards. An unknown, missing, or
-        // non-numeric id falls back to the first board, never an
-        // error — the same way an unknown filter value is ignored
-        // below instead of failing the request.
-        $board = Board::find($request->query('board'))
-            ?? Board::first()
-            ?? Board::firstOrCreate(['name' => 'My Board']);
+        // ?board=<id> switches boards. Only a numeric id is looked
+        // up: anything else (a missing value, an unknown id, or an
+        // array like ?board[]=1, which would make find() return a
+        // Collection instead of a Board) falls back to the first
+        // board, never an error — the same way an unknown filter
+        // value is ignored below instead of failing the request.
+        $boardId = $request->query('board');
+        $board = is_numeric($boardId) ? Board::find($boardId) : null;
+        $board ??= Board::first() ?? Board::firstOrCreate(['name' => 'My Board']);
 
         // Search + filter come from the board's GET form and are
         // whitelisted here, so an unknown value never reaches the

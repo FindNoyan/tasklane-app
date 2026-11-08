@@ -70,7 +70,7 @@ class BoardSwitchingTest extends TestCase
         ])->assertRedirect(route('tasks.index', ['board' => $second->id]));
     }
 
-    public function test_unknown_board_id_falls_back_to_the_first_board(): void
+    public function test_unknown_or_invalid_board_id_falls_back_to_the_first_board(): void
     {
         Board::firstOrCreate(['name' => 'My Board']);
 
@@ -84,6 +84,11 @@ class BoardSwitchingTest extends TestCase
         // A stale bookmark or a mistyped id must show a board, not
         // an error page.
         $this->get('/?board=999999')->assertOk()
+            ->assertSee('First board task');
+
+        // An array value (?board[]=1) must fall back the same way,
+        // not hand a Collection to the view as if it were a Board.
+        $this->get('/?board[]=1')->assertOk()
             ->assertSee('First board task');
     }
 
