@@ -44,7 +44,7 @@ class TaskRequestValidationTest extends TestCase
             'board_id' => $board->id,
             'title' => 'Valid task',
             'priority' => 'medium',
-        ])->assertRedirect('/');
+        ])->assertRedirect(route('tasks.index', ['board' => $board->id]));
 
         $this->assertDatabaseHas('tasks', [
             'title' => 'Valid task',
@@ -63,7 +63,7 @@ class TaskRequestValidationTest extends TestCase
             'title' => 'Renamed task',
             'status' => 'done',
             'priority' => 'low',
-        ])->assertRedirect('/');
+        ])->assertRedirect(route('tasks.index', ['board' => $board->id]));
 
         $this->assertDatabaseHas('tasks', [
             'id' => $task->id,
@@ -72,3 +72,4 @@ class TaskRequestValidationTest extends TestCase
         ]);
     }
 }
+

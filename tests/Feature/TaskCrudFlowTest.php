@@ -22,7 +22,7 @@ class TaskCrudFlowTest extends TestCase
             'priority' => 'high',
         ]);
 
-        $response->assertRedirect('/');
+        $response->assertRedirect(route('tasks.index', ['board' => $board->id]));
         $response->assertSessionHas('status', 'Task added.');
 
         $this->assertDatabaseHas('tasks', [
@@ -63,7 +63,7 @@ class TaskCrudFlowTest extends TestCase
             'priority' => 'high',
         ]);
 
-        $response->assertRedirect('/');
+        $response->assertRedirect(route('tasks.index', ['board' => $board->id]));
         $response->assertSessionHas('status', 'Task updated.');
 
         $this->assertDatabaseHas('tasks', [
@@ -95,7 +95,7 @@ class TaskCrudFlowTest extends TestCase
         // A column move is the board's main interaction, and it had
         // no test at all: todo -> in progress -> done.
         $this->patch("/tasks/{$task->id}", ['status' => 'in_progress'])
-            ->assertRedirect('/')
+            ->assertRedirect(route('tasks.index', ['board' => $board->id]))
             ->assertSessionHas('status', 'Task updated.');
 
         $this->assertDatabaseHas('tasks', [
@@ -106,7 +106,7 @@ class TaskCrudFlowTest extends TestCase
         ]);
 
         $this->patch("/tasks/{$task->id}", ['status' => 'done'])
-            ->assertRedirect('/');
+            ->assertRedirect(route('tasks.index', ['board' => $board->id]));
 
         $this->assertDatabaseHas('tasks', [
             'id' => $task->id,
@@ -124,3 +124,4 @@ class TaskCrudFlowTest extends TestCase
         ]);
     }
 }
+
