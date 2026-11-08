@@ -16,7 +16,13 @@ class TaskController extends Controller
      */
     public function index(Request $request): View
     {
-        $board = Board::firstOrCreate(['name' => 'My Board']);
+        // ?board=<id> switches boards. An unknown, missing, or
+        // non-numeric id falls back to the first board, never an
+        // error — the same way an unknown filter value is ignored
+        // below instead of failing the request.
+        $board = Board::find($request->query('board'))
+            ?? Board::first()
+            ?? Board::firstOrCreate(['name' => 'My Board']);
 
         // Search + filter come from the board's GET form and are
         // whitelisted here, so an unknown value never reaches the
@@ -46,6 +52,7 @@ class TaskController extends Controller
 
         return view('tasks.index', [
             'board' => $board,
+            'boards' => Board::orderBy('name')->get(),
             'columns' => $columns,
             'filters' => $filters,
             'filtersActive' => $filtersActive,
@@ -57,9 +64,12 @@ class TaskController extends Controller
      */
     public function store(TaskRequest $request): RedirectResponse
     {
-        Task::create($request->validated() + ['status' => 'todo']);
+        $validated = $request->validated();
 
-        return redirect()->route('tasks.index')->with('status', 'Task added.');
+        Task::create($validated + ['status' => 'todo']);
+
+        return redirect()->route('tasks.index', ['board' => $validated['board_id']])
+            ->with('status', 'Task added.');
     }
 
     /**
@@ -77,7 +87,8 @@ class TaskController extends Controller
     {
         $task->update($request->validated());
 
-        return redirect()->route('tasks.index')->with('status', 'Task updated.');
+        return redirect()->route('tasks.index', ['board' => $task->board_id])
+            ->with('status', 'Task updated.');
     }
 
     /**
@@ -91,7 +102,8 @@ class TaskController extends Controller
 
         $task->update($validated);
 
-        return redirect()->route('tasks.index')->with('status', 'Task updated.');
+        return redirect()->route('tasks.index', ['board' => $task->board_id])
+            ->with('status', 'Task updated.');
     }
 
     /**
@@ -101,6 +113,7 @@ class TaskController extends Controller
     {
         $task->delete();
 
-        return redirect()->route('tasks.index')->with('status', 'Task removed.');
+        return redirect()->route('tasks.index', ['board' => $task->board_id])
+            ->with('status', 'Task removed.');
     }
 }
