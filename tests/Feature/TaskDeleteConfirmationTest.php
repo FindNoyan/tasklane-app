@@ -41,8 +41,9 @@ class TaskDeleteConfirmationTest extends TestCase
 
         $response = $this->delete(route('tasks.destroy', $task));
 
-        $response->assertRedirect(route('tasks.index'));
+        $response->assertRedirect(route('tasks.index', ['board' => $board->id]));
         $response->assertSessionHas('status', 'Task removed.');
         $this->assertDatabaseMissing('tasks', ['id' => $task->id]);
     }
 }
+
