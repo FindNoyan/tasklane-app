@@ -1,7 +1,48 @@
 @extends('layouts.app')
 
+@section('title', $board->name)
+
 @section('content')
     <div class="mx-auto max-w-5xl">
+
+        <nav aria-label="Boards" class="mb-6 flex flex-wrap items-center gap-2">
+            @foreach ($boards as $listedBoard)
+                <a
+                    href="{{ route('tasks.index', ['board' => $listedBoard->id]) }}"
+                    @if ($listedBoard->id === $board->id) aria-current="page" @endif
+                    class="rounded-md border px-3 py-1.5 text-sm {{ $listedBoard->id === $board->id ? 'border-ink bg-ink font-medium text-paper' : 'border-line bg-surface text-ink hover:border-teal' }}"
+                >
+                    {{ $listedBoard->name }}
+                </a>
+            @endforeach
+        </nav>
+
+        <section class="mb-10 rounded-lg border border-line bg-surface p-5">
+            <h2 class="font-display text-lg font-semibold text-ink">New board</h2>
+            <form method="POST" action="{{ route('boards.store') }}" class="mt-4 flex flex-wrap items-end gap-3">
+                @csrf
+                <label class="flex flex-col gap-1 text-xs text-muted">
+                    Board name
+                    <input
+                        type="text"
+                        name="name"
+                        placeholder="Board name"
+                        value="{{ old('name') }}"
+                        required
+                        class="rounded-md border border-line px-3 py-2 text-sm text-ink focus:border-teal focus:outline-none"
+                    >
+                </label>
+                <button
+                    type="submit"
+                    class="rounded-md bg-ink px-4 py-2 text-sm font-medium text-paper transition-opacity hover:opacity-90"
+                >
+                    Create board
+                </button>
+            </form>
+            @error('name')
+                <p class="mt-2 text-sm text-ochre">{{ $message }}</p>
+            @enderror
+        </section>
 
         <section class="mb-10 rounded-lg border border-line bg-surface p-5">
             <h2 class="font-display text-lg font-semibold text-ink">Add a task</h2>
@@ -52,6 +93,7 @@
         <section class="mb-10 rounded-lg border border-line bg-surface p-5">
             <h2 class="font-display text-lg font-semibold text-ink">Find a task</h2>
             <form method="GET" action="{{ route('tasks.index') }}" class="mt-4 flex flex-wrap items-end gap-3">
+                <input type="hidden" name="board" value="{{ $board->id }}">
                 <label class="flex flex-col gap-1 text-xs text-muted">
                     Search by title
                     <input
@@ -82,7 +124,7 @@
                     Search
                 </button>
                 @if ($filtersActive)
-                    <a href="{{ route('tasks.index') }}" class="pb-2 text-sm text-teal hover:underline">
+                    <a href="{{ route('tasks.index', ['board' => $board->id]) }}" class="pb-2 text-sm text-teal hover:underline">
                         Clear filters
                     </a>
                 @endif
@@ -92,7 +134,7 @@
         @if ($filtersActive && $columns['todo']->isEmpty() && $columns['in_progress']->isEmpty() && $columns['done']->isEmpty())
             <p class="mb-6 text-sm text-muted">
                 No tasks match your filters.
-                <a href="{{ route('tasks.index') }}" class="text-teal hover:underline">Clear filters</a>
+                <a href="{{ route('tasks.index', ['board' => $board->id]) }}" class="text-teal hover:underline">Clear filters</a>
             </p>
         @endif
 
