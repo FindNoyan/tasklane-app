@@ -20,14 +20,20 @@ the correct framework files for whatever Laravel version you install.
 2. **Copy these folders into the new `tasklane` project**, replacing
    files where asked:
    - `app/Models/Board.php`, `app/Models/Task.php`
-   - `app/Http/Controllers/TaskController.php`
+   - `app/Http/Controllers/BoardController.php`,
+     `app/Http/Controllers/TaskController.php`
+   - `app/Http/Requests/TaskRequest.php`
    - `database/migrations/*` (the two Tasklane migration files)
    - `database/seeders/DatabaseSeeder.php`
    - `routes/web.php`
    - `resources/views/layouts/app.blade.php`
+   - `resources/views/boards/edit.blade.php`
    - `resources/views/tasks/index.blade.php`
    - `resources/views/tasks/edit.blade.php`
+   - `resources/js/app.js`
    - `resources/css/app.css`
+   - `tests/` (feature + unit tests — run them with
+     `php artisan test`)
    - `tailwind.config.js`, `postcss.config.js` (add these; Laravel 10
      doesn't include Tailwind by default)
 
