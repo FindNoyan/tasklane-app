@@ -79,7 +79,12 @@ class TaskController extends Controller
      */
     public function edit(Task $task): View
     {
-        return view('tasks.edit', ['task' => $task]);
+        return view('tasks.edit', [
+            'task' => $task,
+            // The edit form has a board picker, so the task can move
+            // to another board when it is saved.
+            'boards' => Board::orderBy('name')->get(),
+        ]);
     }
 
     /**

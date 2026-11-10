@@ -20,7 +20,9 @@ class TaskRequest extends FormRequest
      * replace in TaskController@store and TaskController@update.
      * The two actions differ in one field each, so those rules are
      * added by HTTP method: creating (POST) requires a board_id,
-     * editing (PUT) requires a status.
+     * editing (PUT) requires a status and a board_id — the edit form
+     * always sends a board, so a task can move to another board
+     * from its edit page.
      */
     public function rules(): array
     {
@@ -37,6 +39,7 @@ class TaskRequest extends FormRequest
 
         if ($this->isMethod('put')) {
             $rules['status'] = ['required', 'in:todo,in_progress,done'];
+            $rules['board_id'] = ['required', 'exists:boards,id'];
         }
 
         return $rules;
