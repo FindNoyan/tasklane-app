@@ -38,6 +38,18 @@
                 @enderror
             </div>
 
+            <div>
+                <label for="board_id" class="mb-1 block text-sm font-medium text-ink">Board</label>
+                <select id="board_id" name="board_id" class="w-full rounded-md border border-line px-3 py-2 text-sm focus:border-teal focus:outline-none">
+                    @foreach ($boards as $listedBoard)
+                        <option value="{{ $listedBoard->id }}" @selected(old('board_id', $task->board_id) == $listedBoard->id)>{{ $listedBoard->name }}</option>
+                    @endforeach
+                </select>
+                @error('board_id')
+                    <p class="mt-1 text-sm text-ochre">{{ $message }}</p>
+                @enderror
+            </div>
+
             <div class="grid gap-4 sm:grid-cols-3">
                 <div>
                     <label for="status" class="mb-1 block text-sm font-medium text-ink">Status</label>

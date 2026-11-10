@@ -54,12 +54,14 @@ class TaskRequestValidationTest extends TestCase
         $task = Task::first();
 
         $this->put("/tasks/{$task->id}", [
+            'board_id' => $board->id,
             'title' => 'Valid task',
             'status' => 'archived',
             'priority' => 'medium',
         ])->assertSessionHasErrors('status');
 
         $this->put("/tasks/{$task->id}", [
+            'board_id' => $board->id,
             'title' => 'Renamed task',
             'status' => 'done',
             'priority' => 'low',

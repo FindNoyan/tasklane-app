@@ -57,6 +57,7 @@ class TaskCrudFlowTest extends TestCase
             ->assertSee('Save changes');
 
         $response = $this->put("/tasks/{$task->id}", [
+            'board_id' => $board->id,
             'title' => 'Edited task',
             'description' => 'Updated description',
             'status' => 'in_progress',
