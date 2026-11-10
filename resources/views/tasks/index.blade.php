@@ -17,6 +17,23 @@
             @endforeach
         </nav>
 
+        <div class="mb-6 flex items-center gap-4 text-sm">
+            <span class="text-muted">This board:</span>
+            <a href="{{ route('boards.edit', $board) }}" class="text-teal hover:underline">
+                Rename
+            </a>
+            <form method="POST" action="{{ route('boards.destroy', $board) }}" data-confirm-board-delete class="inline">
+                @csrf
+                @method('DELETE')
+                <button
+                    type="submit"
+                    class="text-muted transition-colors hover:text-ochre"
+                >
+                    Delete board
+                </button>
+            </form>
+        </div>
+
         <section class="mb-10 rounded-lg border border-line bg-surface p-5">
             <h2 class="font-display text-lg font-semibold text-ink">New board</h2>
             <form method="POST" action="{{ route('boards.store') }}" class="mt-4 flex flex-wrap items-end gap-3">
