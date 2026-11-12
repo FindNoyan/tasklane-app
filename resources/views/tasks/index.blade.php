@@ -155,6 +155,8 @@
             </p>
         @endif
 
+        <p class="mb-6 text-sm text-muted">Tip: drag a task onto another column to move it.</p>
+
         <div class="grid gap-6 sm:grid-cols-3">
             @foreach ([
                 'todo' => 'To do',
@@ -169,9 +171,9 @@
                         </span>
                     </h3>
 
-                    <div class="space-y-3">
+                    <div class="min-h-24 space-y-3" data-drop-status="{{ $status }}">
                         @forelse ($columns[$status] as $task)
-                            <article class="priority-bar--{{ $task->priority }} rounded-md border border-line border-l-4 bg-surface p-4">
+                            <article draggable="true" data-task-id="{{ $task->id }}" class="priority-bar--{{ $task->priority }} cursor-grab rounded-md border border-line border-l-4 bg-surface p-4">
                                 <div class="flex items-start justify-between gap-2">
                                     <h4 class="text-sm font-medium text-ink">{{ $task->title }}</h4>
                                     <div class="flex shrink-0 items-center gap-2">
@@ -207,7 +209,7 @@
                                     </p>
                                 @endif
 
-                                <form method="POST" action="{{ route('tasks.updateStatus', $task) }}" class="mt-3 flex items-center gap-2">
+                                <form method="POST" action="{{ route('tasks.updateStatus', $task) }}" data-move-form class="mt-3 flex items-center gap-2">
                                     @csrf
                                     @method('PATCH')
                                     <select name="status" class="rounded-md border border-line px-2 py-1 text-xs focus:border-teal focus:outline-none">
