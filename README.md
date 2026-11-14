@@ -23,7 +23,7 @@ the correct framework files for whatever Laravel version you install.
    - `app/Http/Controllers/BoardController.php`,
      `app/Http/Controllers/TaskController.php`
    - `app/Http/Requests/TaskRequest.php`
-   - `database/migrations/*` (the two Tasklane migration files)
+   - `database/migrations/*` (the three Tasklane migration files)
    - `database/seeders/DatabaseSeeder.php`
    - `routes/web.php`
    - `resources/views/layouts/app.blade.php`
