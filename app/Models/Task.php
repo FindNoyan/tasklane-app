@@ -30,18 +30,23 @@ class Task extends Model
     }
 
     /**
-     * Order tasks the way a board column should read: earliest due
-     * date first, tasks with no due date last, then priority high
-     * before medium before low, then creation order as a stable
-     * tie-breaker. The CASE expressions are plain SQL, so the order
-     * is the same on SQLite, MySQL, and PostgreSQL (unlike a bare
-     * ORDER BY due_date, where nulls sort first on some databases
-     * and last on others, and unlike ordering the string priority
-     * alphabetically, which would put high last).
+     * Order tasks the way a board column should read: a hand-set
+     * order first (position — 0 for every task until its column is
+     * reordered by drag and drop, then 0..n in the dropped order),
+     * then earliest due date first, tasks with no due date last,
+     * then priority high before medium before low, then creation
+     * order as a stable tie-breaker. The CASE expressions are plain
+     * SQL, so the order is the same on SQLite, MySQL, and PostgreSQL
+     * (unlike a bare ORDER BY due_date, where nulls sort first on
+     * some databases and last on others, and unlike ordering the
+     * string priority alphabetically, which would put high last).
+     * Because unreordered tasks all share position 0, their
+     * relative order is exactly the old due-date / priority order.
      */
     public function scopeOrdered(Builder $query): void
     {
-        $query->orderByRaw('CASE WHEN due_date IS NULL THEN 1 ELSE 0 END')
+        $query->orderBy('position')
+            ->orderByRaw('CASE WHEN due_date IS NULL THEN 1 ELSE 0 END')
             ->orderBy('due_date')
             ->orderByRaw("CASE priority WHEN 'high' THEN 0 WHEN 'medium' THEN 1 ELSE 2 END")
             ->orderBy('id');

@@ -7,6 +7,7 @@ use App\Models\Board;
 use App\Models\Task;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class TaskController extends Controller
@@ -68,7 +69,16 @@ class TaskController extends Controller
     {
         $validated = $request->validated();
 
-        Task::create($validated + ['status' => 'todo']);
+        // A new task joins the end of the To do column, so it never
+        // jumps ahead of a column the user ordered by hand. The
+        // position is set directly, not mass-assigned: it is an
+        // internal ordering value, never part of a form's input. The
+        // end position is read before creating, so the new row
+        // itself is not counted as the column's last task.
+        $position = $this->endPosition($validated['board_id'], 'todo');
+        $task = Task::create($validated + ['status' => 'todo']);
+        $task->position = $position;
+        $task->save();
 
         return redirect()->route('tasks.index', ['board' => $validated['board_id']])
             ->with('status', 'Task added.');
@@ -92,7 +102,19 @@ class TaskController extends Controller
      */
     public function update(TaskRequest $request, Task $task): RedirectResponse
     {
+        $oldBoardId = $task->board_id;
+        $oldStatus = $task->status;
+
         $task->update($request->validated());
+
+        // The edit form can move the task to another board or
+        // column, so — same as a column move — it joins the end of
+        // the column it lands in instead of arriving with a stale
+        // position that would scramble a hand-ordered column.
+        if ($task->board_id !== $oldBoardId || $task->status !== $oldStatus) {
+            $task->position = $this->endPosition($task->board_id, $task->status);
+            $task->save();
+        }
 
         return redirect()->route('tasks.index', ['board' => $task->board_id])
             ->with('status', 'Task updated.');
@@ -107,10 +129,61 @@ class TaskController extends Controller
             'status' => ['required', 'in:todo,in_progress,done'],
         ]);
 
+        // Moving to another column appends the task at the end of
+        // that column, so a manually ordered column is not scrambled
+        // by a task arriving with a stale position. Submitting the
+        // Move form without changing the status leaves the position
+        // alone, exactly as before.
+        if ($validated['status'] !== $task->status) {
+            $task->position = $this->endPosition($task->board_id, $validated['status']);
+        }
+
         $task->update($validated);
 
         return redirect()->route('tasks.index', ['board' => $task->board_id])
             ->with('status', 'Task updated.');
+    }
+
+    /**
+     * Save a column's manual order after a drag-and-drop reorder.
+     * The posted ids must be every task in that board + status
+     * column, in their new order: a filtered board only shows some
+     * tasks, so a partial order is rejected instead of scrambling
+     * the tasks the page did not show.
+     */
+    public function reorder(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'board_id' => ['required', 'exists:boards,id'],
+            'status' => ['required', 'in:todo,in_progress,done'],
+            'ids' => ['required', 'array', 'min:1'],
+            'ids.*' => ['integer', 'exists:tasks,id'],
+        ]);
+
+        $ids = array_values(array_unique($validated['ids']));
+
+        $matching = Task::whereIn('id', $ids)
+            ->where('board_id', $validated['board_id'])
+            ->where('status', $validated['status'])
+            ->count();
+
+        $columnCount = Task::where('board_id', $validated['board_id'])
+            ->where('status', $validated['status'])
+            ->count();
+
+        if ($matching !== count($ids) || $matching !== $columnCount) {
+            return redirect()->route('tasks.index', ['board' => $validated['board_id']])
+                ->withErrors(['ids' => 'The task order must list every task in the column.']);
+        }
+
+        DB::transaction(function () use ($ids) {
+            foreach ($ids as $position => $id) {
+                Task::where('id', $id)->update(['position' => $position]);
+            }
+        });
+
+        return redirect()->route('tasks.index', ['board' => $validated['board_id']])
+            ->with('status', 'Order saved.');
     }
 
     /**
@@ -122,5 +195,16 @@ class TaskController extends Controller
 
         return redirect()->route('tasks.index', ['board' => $task->board_id])
             ->with('status', 'Task removed.');
+    }
+
+    /**
+     * The position a task takes when it enters a column: one past
+     * the column's current last task, or 0 for an empty column.
+     */
+    private function endPosition(int $boardId, string $status): int
+    {
+        $max = Task::where('board_id', $boardId)->where('status', $status)->max('position');
+
+        return ($max ?? -1) + 1;
     }
 }

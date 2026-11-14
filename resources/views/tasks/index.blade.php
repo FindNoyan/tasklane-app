@@ -155,7 +155,17 @@
             </p>
         @endif
 
-        <p class="mb-6 text-sm text-muted">Tip: drag a task onto another column to move it.</p>
+        <p class="mb-6 text-sm text-muted">Tip: drag a task onto another column to move it, or drag it within a column to reorder it.</p>
+
+        {{-- Hidden reorder form: the drag-and-drop script fills in the
+             column status and the ordered task ids, then submits it.
+             It has no submit button, so without JavaScript it does
+             nothing — the board keeps working as before. --}}
+        <form method="POST" action="{{ route('tasks.reorder') }}" data-reorder-form class="hidden">
+            @csrf
+            <input type="hidden" name="board_id" value="{{ $board->id }}">
+            <input type="hidden" name="status" value="">
+        </form>
 
         <div class="grid gap-6 sm:grid-cols-3">
             @foreach ([

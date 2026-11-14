@@ -27,7 +27,7 @@ class TaskDragDropTest extends TestCase
         $this->get(route('tasks.index', ['board' => $board->id]))->assertOk()
             ->assertSee('draggable="true"', false)
             ->assertSee('data-task-id="' . $task->id . '"', false)
-            ->assertSee('Tip: drag a task onto another column to move it.');
+            ->assertSee('Tip: drag a task onto another column to move it, or drag it within a column to reorder it.');
     }
 
     public function test_every_column_is_a_drop_target_even_when_empty(): void
@@ -60,5 +60,18 @@ class TaskDragDropTest extends TestCase
             ->assertSee('data-move-form', false)
             ->assertSee('name="status"', false)
             ->assertSee('Move');
+    }
+
+    public function test_board_renders_the_hidden_reorder_form(): void
+    {
+        $board = Board::firstOrCreate(['name' => 'My Board']);
+
+        // The drag script posts a same-column drop through this
+        // form, so it must be on the page with the board id and an
+        // empty status for the script to fill in.
+        $this->get(route('tasks.index', ['board' => $board->id]))->assertOk()
+            ->assertSee('data-reorder-form', false)
+            ->assertSee('name="board_id"', false)
+            ->assertSee('name="status"', false);
     }
 }

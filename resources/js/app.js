@@ -21,10 +21,13 @@ document.addEventListener('submit', (event) => {
 });
 
 // Drag and drop: a card marked draggable carries its task id, and each
-// column list carries data-drop-status. Dropping a card on a column sets
-// that card's own move form to the column's status and submits it, so a
-// drag uses the same PATCH /tasks/{task} route as the Move button — no
-// new endpoint, and without JavaScript the Move button still works.
+// column list carries data-drop-status. Dropping a card on another
+// column sets that card's own move form to the column's status and
+// submits it, so a move uses the same PATCH /tasks/{task} route as the
+// Move button — no new endpoint, and without JavaScript the Move button
+// still works. Dropping a card inside its own column reorders that
+// column instead: the card's drop position becomes the column's new
+// order, posted to the hidden reorder form (POST /tasks/reorder).
 // Dragging from a link, button, select, or input inside a card is
 // ignored, so using the card's own controls never starts a drag.
 document.addEventListener('dragstart', (event) => {
@@ -86,11 +89,50 @@ document.addEventListener('drop', (event) => {
         return;
     }
 
-    // Dropping a card on its own column changes nothing.
-    if (select.value === column.dataset.dropStatus) {
+    // Dropping on another column moves the task there, as before.
+    if (select.value !== column.dataset.dropStatus) {
+        select.value = column.dataset.dropStatus;
+        form.submit();
         return;
     }
 
-    select.value = column.dataset.dropStatus;
-    form.submit();
+    // Same column: reorder. The drop position is where the pointer
+    // falls against the midpoint of each other card, so dropping
+    // above a card's middle puts the dragged card before it.
+    const reorderForm = document.querySelector('[data-reorder-form]');
+
+    if (!reorderForm) {
+        return;
+    }
+
+    const siblings = [...column.querySelectorAll('[data-task-id]')].filter((other) => other !== card);
+    let index = siblings.findIndex((other) => {
+        const rect = other.getBoundingClientRect();
+        return event.clientY < rect.top + rect.height / 2;
+    });
+
+    if (index === -1) {
+        index = siblings.length;
+    }
+
+    const ids = siblings.map((other) => other.dataset.taskId);
+    ids.splice(index, 0, card.dataset.taskId);
+
+    // Dropping a card where it already sits changes nothing.
+    const current = [...column.querySelectorAll('[data-task-id]')].map((other) => other.dataset.taskId);
+
+    if (ids.join(',') === current.join(',')) {
+        return;
+    }
+
+    reorderForm.querySelector('input[name="status"]').value = column.dataset.dropStatus;
+    reorderForm.querySelectorAll('input[name="ids[]"]').forEach((input) => input.remove());
+    ids.forEach((id) => {
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = 'ids[]';
+        input.value = id;
+        reorderForm.appendChild(input);
+    });
+    reorderForm.submit();
 });
